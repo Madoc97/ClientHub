@@ -7,7 +7,7 @@ const navItems = [
   'Leads',
   'Activities',
   'API Management',
-  'Usage',
+  'Usage Tracking',
   'Settings',
 ]
 
@@ -53,9 +53,13 @@ const sectionMeta = {
     heading: 'API access control',
     subtitle: 'Manage keys, scopes, and authentication health for every workspace.',
   },
+  'Usage Tracking': {
+    heading: 'Usage Tracking',
+    subtitle: 'Review request volume, reliability, and endpoint health across your ClientHub workflows.',
+  },
   Usage: {
-    heading: 'Usage analytics',
-    subtitle: 'Review performance trends, request volume, and engagement by customer.',
+    heading: 'Usage Tracking',
+    subtitle: 'Review request volume, reliability, and endpoint health across your ClientHub workflows.',
   },
   Settings: {
     heading: 'Workspace settings',
@@ -338,6 +342,161 @@ const initialActivities = [
   },
 ]
 
+const apiKeyPermissionOptions = [
+  'Customers: Read',
+  'Customers: Write',
+  'Leads: Read',
+  'Leads: Write',
+  'Activities: Read',
+  'Activities: Write',
+]
+
+const apiKeyExpiryOptions = ['Never', '30 days', '90 days']
+
+const defaultApiKeyFormState = {
+  name: '',
+  environment: 'Test',
+  permissions: [...apiKeyPermissionOptions],
+  expiry: 'Never',
+}
+
+const defaultSettingsState = {
+  companyName: 'ClientHub',
+  businessEmail: 'hello@clienthub.io',
+  contactNumber: '+1 (415) 555-0190',
+  website: 'https://www.clienthub.io',
+  userName: 'Maya Patel',
+  userEmail: 'maya@clienthub.io',
+  userRole: 'Operations Lead',
+  timezone: 'UTC-08:00 (Pacific Time)',
+  dateFormat: 'MM/DD/YYYY',
+  timeFormat: '12-hour',
+  apiBaseUrl: 'https://api.clienthub.io/v1',
+  environment: 'Development',
+  configurationStatus: 'Demo mode - not connected',
+}
+
+const SETTINGS_STORAGE_KEY = 'clienthub-settings-demo'
+
+const readStoredSettings = () => {
+  if (typeof window === 'undefined') return { ...defaultSettingsState }
+
+  try {
+    const stored = window.localStorage.getItem(SETTINGS_STORAGE_KEY)
+    if (!stored) return { ...defaultSettingsState }
+
+    const parsed = JSON.parse(stored)
+    if (!parsed || typeof parsed !== 'object') return { ...defaultSettingsState }
+
+    return { ...defaultSettingsState, ...parsed }
+  } catch {
+    return { ...defaultSettingsState }
+  }
+}
+
+const initialApiKeys = [
+  {
+    id: 1,
+    name: 'Web app',
+    keyPrefix: 'ch_test_',
+    lastFour: 'a1f2',
+    environment: 'Test',
+    permissions: ['Customers: Read', 'Customers: Write', 'Leads: Read', 'Activities: Read'],
+    createdAt: '2024-06-10',
+    expiresAt: 'Never',
+    status: 'Active',
+    lastUsedAt: '2024-06-13T10:15:00.000Z',
+  },
+  {
+    id: 2,
+    name: 'Mobile sync',
+    keyPrefix: 'ch_test_',
+    lastFour: '42ab',
+    environment: 'Test',
+    permissions: ['Customers: Read', 'Leads: Read'],
+    createdAt: '2024-05-18',
+    expiresAt: '30 days',
+    status: 'Active',
+    lastUsedAt: '2024-06-12T08:00:00.000Z',
+  },
+  {
+    id: 3,
+    name: 'Legacy portal',
+    keyPrefix: 'ch_test_',
+    lastFour: 'da3d',
+    environment: 'Test',
+    permissions: ['Customers: Read', 'Customers: Write', 'Leads: Read', 'Leads: Write'],
+    createdAt: '2024-04-12',
+    expiresAt: 'Never',
+    status: 'Revoked',
+    lastUsedAt: '2024-05-18T09:20:00.000Z',
+  },
+]
+
+const demoUsageRecords = [
+  { id: 1, dateTime: '2026-11-01T08:12:00', apiKeyName: 'Web app', endpoint: '/customers', method: 'GET', statusCode: 200, responseTime: 181, result: 'Success' },
+  { id: 2, dateTime: '2026-11-01T08:24:00', apiKeyName: 'Web app', endpoint: '/customers', method: 'POST', statusCode: 201, responseTime: 214, result: 'Success' },
+  { id: 3, dateTime: '2026-11-01T09:05:00', apiKeyName: 'Mobile sync', endpoint: '/leads', method: 'GET', statusCode: 200, responseTime: 233, result: 'Success' },
+  { id: 4, dateTime: '2026-11-01T09:42:00', apiKeyName: 'Web app', endpoint: '/activities', method: 'GET', statusCode: 200, responseTime: 172, result: 'Success' },
+  { id: 5, dateTime: '2026-11-02T10:18:00', apiKeyName: 'Legacy portal', endpoint: '/customers', method: 'GET', statusCode: 500, responseTime: 410, result: 'Failed' },
+  { id: 6, dateTime: '2026-11-02T11:10:00', apiKeyName: 'Web app', endpoint: '/leads', method: 'POST', statusCode: 201, responseTime: 248, result: 'Success' },
+  { id: 7, dateTime: '2026-11-02T13:58:00', apiKeyName: 'Mobile sync', endpoint: '/activities', method: 'GET', statusCode: 200, responseTime: 198, result: 'Success' },
+  { id: 8, dateTime: '2026-11-03T07:40:00', apiKeyName: 'Web app', endpoint: '/customers', method: 'GET', statusCode: 200, responseTime: 164, result: 'Success' },
+  { id: 9, dateTime: '2026-11-03T12:27:00', apiKeyName: 'Web app', endpoint: '/customers', method: 'POST', statusCode: 400, responseTime: 290, result: 'Failed' },
+  { id: 10, dateTime: '2026-11-04T09:18:00', apiKeyName: 'Mobile sync', endpoint: '/leads', method: 'GET', statusCode: 200, responseTime: 220, result: 'Success' },
+  { id: 11, dateTime: '2026-11-04T14:04:00', apiKeyName: 'Legacy portal', endpoint: '/leads', method: 'POST', statusCode: 503, responseTime: 560, result: 'Failed' },
+  { id: 12, dateTime: '2026-11-05T08:51:00', apiKeyName: 'Web app', endpoint: '/activities', method: 'GET', statusCode: 200, responseTime: 176, result: 'Success' },
+  { id: 13, dateTime: '2026-11-05T09:46:00', apiKeyName: 'Web app', endpoint: '/customers', method: 'GET', statusCode: 200, responseTime: 188, result: 'Success' },
+  { id: 14, dateTime: '2026-11-05T16:12:00', apiKeyName: 'Mobile sync', endpoint: '/customers', method: 'POST', statusCode: 201, responseTime: 244, result: 'Success' },
+  { id: 15, dateTime: '2026-11-06T07:52:00', apiKeyName: 'Web app', endpoint: '/leads', method: 'GET', statusCode: 200, responseTime: 220, result: 'Success' },
+  { id: 16, dateTime: '2026-11-06T08:06:00', apiKeyName: 'Mobile sync', endpoint: '/activities', method: 'GET', statusCode: 429, responseTime: 310, result: 'Failed' },
+]
+
+const buildMaskedApiKey = (keyPrefix = 'ch_test_', lastFour = '0000') => {
+  return `${keyPrefix}${'•'.repeat(16)}${lastFour}`
+}
+
+const normalizeApiKeyRecord = (record) => {
+  if (!record || typeof record !== 'object') return null
+
+  const name = typeof record.name === 'string' ? record.name.trim() : 'Unnamed API key'
+  const keyPrefix = typeof record.keyPrefix === 'string' && record.keyPrefix.trim()
+    ? record.keyPrefix.trim()
+    : 'ch_test_'
+  const lastFour = typeof record.lastFour === 'string' && record.lastFour.trim()
+    ? record.lastFour.trim()
+    : '0000'
+  const environment = record.environment === 'Test' ? 'Test' : 'Test'
+  const permissions = Array.isArray(record.permissions)
+    ? record.permissions.filter((permission) => typeof permission === 'string' && permission.trim())
+    : []
+  const status = record.status === 'Revoked' ? 'Revoked' : 'Active'
+  const expiresAt = typeof record.expiresAt === 'string' && record.expiresAt.trim() ? record.expiresAt : 'Never'
+  const createdAt = typeof record.createdAt === 'string' && record.createdAt.trim() ? record.createdAt : new Date().toISOString().slice(0, 10)
+  const lastUsedAt = typeof record.lastUsedAt === 'string' && record.lastUsedAt.trim() ? record.lastUsedAt : null
+
+  return {
+    id: Number(record.id) || Date.now(),
+    name,
+    keyPrefix,
+    lastFour,
+    environment,
+    permissions,
+    createdAt,
+    expiresAt,
+    status,
+    lastUsedAt,
+  }
+}
+
+const sanitizeStoredApiKeys = (values) => {
+  if (!Array.isArray(values)) return []
+
+  return values
+    .map((record) => normalizeApiKeyRecord(record))
+    .filter(Boolean)
+}
+
 const readStorageList = (key, fallback) => {
   if (typeof window === 'undefined') return fallback
 
@@ -350,6 +509,17 @@ const readStorageList = (key, fallback) => {
   } catch {
     return fallback
   }
+}
+
+const readStoredApiKeys = () => {
+  const stored = readStorageList('clienthub-api-keys', initialApiKeys)
+  const sanitized = sanitizeStoredApiKeys(stored)
+
+  if (typeof window !== 'undefined' && JSON.stringify(sanitized) !== JSON.stringify(stored)) {
+    window.localStorage.setItem('clienthub-api-keys', JSON.stringify(sanitized))
+  }
+
+  return sanitized
 }
 
 const writeStorageList = (key, values) => {
@@ -991,6 +1161,7 @@ function App() {
   const [customers, setCustomers] = useState(() => readStorageList('clienthub-customers', initialCustomers))
   const [leads, setLeads] = useState(() => readStorageList('clienthub-leads', initialLeads))
   const [activities, setActivities] = useState(() => readStorageList('clienthub-activities', initialActivities))
+  const [apiKeys, setApiKeys] = useState(() => readStoredApiKeys())
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [currentPage, setCurrentPage] = useState(1)
@@ -1027,6 +1198,19 @@ function App() {
   const [activitySort, setActivitySort] = useState({ key: 'activityDate', direction: 'desc' })
   const [timelineScope, setTimelineScope] = useState('Customer')
   const [timelineTargetId, setTimelineTargetId] = useState('')
+  const [usageSearchTerm, setUsageSearchTerm] = useState('')
+  const [usageDateFilter, setUsageDateFilter] = useState('All')
+  const [usageKeyFilter, setUsageKeyFilter] = useState('All')
+  const [usageStatusFilter, setUsageStatusFilter] = useState('All')
+  const [apiKeySearchTerm, setApiKeySearchTerm] = useState('')
+  const [apiStatusFilter, setApiStatusFilter] = useState('All')
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false)
+  const [apiKeyForm, setApiKeyForm] = useState(defaultApiKeyFormState)
+  const [apiKeyFormErrors, setApiKeyFormErrors] = useState({})
+  const [newlyCreatedApiKey, setNewlyCreatedApiKey] = useState(null)
+  const [settingsDraft, setSettingsDraft] = useState(() => readStoredSettings())
+  const [savedSettings, setSavedSettings] = useState(() => readStoredSettings())
+  const [settingsMessage, setSettingsMessage] = useState('')
 
   const pageSize = 5
   const leadPageSize = 5
@@ -1043,6 +1227,29 @@ function App() {
   useEffect(() => {
     writeStorageList('clienthub-activities', activities)
   }, [activities])
+
+  useEffect(() => {
+    const safeApiKeys = apiKeys.map((apiKey) => ({
+      id: apiKey.id,
+      name: apiKey.name,
+      keyPrefix: apiKey.keyPrefix,
+      lastFour: apiKey.lastFour,
+      environment: apiKey.environment,
+      permissions: Array.isArray(apiKey.permissions) ? apiKey.permissions : [],
+      createdAt: apiKey.createdAt,
+      expiresAt: apiKey.expiresAt,
+      status: apiKey.status,
+      lastUsedAt: apiKey.lastUsedAt,
+    }))
+
+    writeStorageList('clienthub-api-keys', safeApiKeys)
+  }, [apiKeys])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(savedSettings))
+    }
+  }, [savedSettings])
 
   const summaryCards = useMemo(() => {
     if (activeTab === 'Customers') {
@@ -2272,6 +2479,776 @@ function App() {
     return activitySort.direction === 'asc' ? ' ↑' : ' ↓'
   }
 
+  const apiKeySummary = useMemo(() => {
+    const total = apiKeys.length
+    const active = apiKeys.filter((key) => key.status === 'Active').length
+    const revoked = apiKeys.filter((key) => key.status === 'Revoked').length
+
+    return { total, active, revoked }
+  }, [apiKeys])
+
+  const filteredApiKeys = useMemo(() => {
+    const query = apiKeySearchTerm.trim().toLowerCase()
+
+    return apiKeys.filter((apiKey) => {
+      const searchMatches = !query || [apiKey.name, apiKey.environment, apiKey.permissions.join(' '), apiKey.status]
+        .join(' ')
+        .toLowerCase()
+        .includes(query)
+
+      const statusMatches = apiStatusFilter === 'All' || apiKey.status === apiStatusFilter
+      return searchMatches && statusMatches
+    })
+  }, [apiKeys, apiKeySearchTerm, apiStatusFilter])
+
+  const toggleApiKeyPermission = (permission) => {
+    setApiKeyForm((previous) => {
+      const nextPermissions = previous.permissions.includes(permission)
+        ? previous.permissions.filter((item) => item !== permission)
+        : [...previous.permissions, permission]
+
+      return {
+        ...previous,
+        permissions: nextPermissions,
+      }
+    })
+
+    setApiKeyFormErrors((previous) => ({ ...previous, permissions: '' }))
+  }
+
+  const handleApiKeyFieldChange = (field, value) => {
+    setApiKeyForm((previous) => ({ ...previous, [field]: value }))
+    setApiKeyFormErrors((previous) => ({ ...previous, [field]: '' }))
+  }
+
+  const validateApiKeyForm = () => {
+    const errors = {}
+
+    if (!apiKeyForm.name.trim()) {
+      errors.name = 'API key name is required.'
+    }
+
+    if (!apiKeyForm.environment) {
+      errors.environment = 'Environment is required.'
+    }
+
+    if (!apiKeyForm.permissions.length) {
+      errors.permissions = 'Select at least one permission.'
+    }
+
+    if (!apiKeyForm.expiry) {
+      errors.expiry = 'Expiry is required.'
+    }
+
+    return errors
+  }
+
+  const handleCreateApiKey = () => {
+    const errors = validateApiKeyForm()
+    if (Object.keys(errors).length > 0) {
+      setApiKeyFormErrors(errors)
+      return
+    }
+
+    const randomBytes = new Uint8Array(24)
+    if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+      window.crypto.getRandomValues(randomBytes)
+    } else if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      crypto.getRandomValues(randomBytes)
+    } else {
+      throw new Error('Secure random number generation is not available in this browser.')
+    }
+
+    const randomHex = Array.from(randomBytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
+    const completeKey = `ch_test_${randomHex}`
+    const createdAt = new Date().toISOString().slice(0, 10)
+    const expiresAt = apiKeyForm.expiry === 'Never'
+      ? 'Never'
+      : new Date(Date.now() + (apiKeyForm.expiry === '30 days' ? 30 : 90) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+
+    const nextRecord = {
+      id: Date.now(),
+      name: apiKeyForm.name.trim(),
+      keyPrefix: 'ch_test_',
+      lastFour: completeKey.slice(-4),
+      environment: apiKeyForm.environment,
+      permissions: [...apiKeyForm.permissions],
+      createdAt,
+      expiresAt,
+      status: 'Active',
+      lastUsedAt: new Date().toISOString(),
+    }
+
+    setApiKeys((previous) => [nextRecord, ...previous])
+    setNewlyCreatedApiKey({ completeKey, copied: false })
+  }
+
+  const closeApiKeyModal = () => {
+    setIsApiKeyModalOpen(false)
+    setApiKeyForm(defaultApiKeyFormState)
+    setApiKeyFormErrors({})
+    setNewlyCreatedApiKey(null)
+  }
+
+  const revokeApiKey = (apiKey) => {
+    if (apiKey.status === 'Revoked') return
+
+    const confirmed = window.confirm(`Revoke API key "${apiKey.name}"? This action cannot be undone.`)
+    if (!confirmed) return
+
+    setApiKeys((previous) => previous.map((item) => {
+      if (item.id !== apiKey.id) return item
+      return {
+        ...item,
+        status: 'Revoked',
+        lastUsedAt: item.lastUsedAt || new Date().toISOString(),
+      }
+    }))
+  }
+
+  const copyGeneratedApiKey = async () => {
+    if (!newlyCreatedApiKey) return
+
+    try {
+      await navigator.clipboard.writeText(newlyCreatedApiKey.completeKey)
+      setNewlyCreatedApiKey((previous) => ({ ...previous, copied: true }))
+    } catch {
+      setNewlyCreatedApiKey((previous) => ({ ...previous, copied: false }))
+    }
+  }
+
+  const renderApiManagement = () => (
+    <section className="api-page">
+      <div className="page-header api-header">
+        <div>
+          <p className="eyebrow">Security</p>
+          <h1>API Management</h1>
+        </div>
+        <div className="api-actions">
+          <span className="demo-mode-indicator">Demo mode</span>
+          <button type="button" className="primary-button" onClick={() => {
+            setApiKeyForm(defaultApiKeyFormState)
+            setApiKeyFormErrors({})
+            setNewlyCreatedApiKey(null)
+            setIsApiKeyModalOpen(true)
+          }}>
+            + Create API Key
+          </button>
+        </div>
+      </div>
+
+      <section className="stats-grid api-summary-grid" aria-label="API key summary">
+        <article className="stat-card">
+          <div className="stat-header">
+            <span className="stat-label">Total keys</span>
+          </div>
+          <strong className="stat-value">{apiKeySummary.total}</strong>
+        </article>
+
+        <article className="stat-card">
+          <div className="stat-header">
+            <span className="stat-label">Active</span>
+          </div>
+          <strong className="stat-value">{apiKeySummary.active}</strong>
+        </article>
+
+        <article className="stat-card">
+          <div className="stat-header">
+            <span className="stat-label">Revoked</span>
+          </div>
+          <strong className="stat-value">{apiKeySummary.revoked}</strong>
+        </article>
+      </section>
+
+      <div className="customers-toolbar lead-toolbar api-toolbar">
+        <label className="toolbar-search">
+          <span>⌕</span>
+          <input
+            type="search"
+            placeholder="Search API keys by name or permissions"
+            value={apiKeySearchTerm}
+            onChange={(event) => setApiKeySearchTerm(event.target.value)}
+          />
+        </label>
+
+        <label className="toolbar-filter">
+          <span>Status</span>
+          <select value={apiStatusFilter} onChange={(event) => setApiStatusFilter(event.target.value)}>
+            {['All', 'Active', 'Revoked'].map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="table-wrap api-table-wrap">
+        <table className="customers-table api-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Masked API Key</th>
+              <th>Environment</th>
+              <th>Permissions</th>
+              <th>Created</th>
+              <th>Expiry</th>
+              <th>Last used</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredApiKeys.length === 0 ? (
+              <tr>
+                <td colSpan="9" className="empty-state">No API keys match the current search or status filter.</td>
+              </tr>
+            ) : (
+              filteredApiKeys.map((apiKey) => (
+                <tr key={apiKey.id}>
+                  <td>{apiKey.name}</td>
+                  <td className="api-key-cell">{buildMaskedApiKey(apiKey.keyPrefix, apiKey.lastFour)}</td>
+                  <td>{apiKey.environment}</td>
+                  <td>{apiKey.permissions.join(', ') || 'No permissions assigned'}</td>
+                  <td>{formatDate(apiKey.createdAt)}</td>
+                  <td>{apiKey.expiresAt === 'Never' ? 'Never' : formatDate(apiKey.expiresAt)}</td>
+                  <td>{apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : 'Never used'}</td>
+                  <td>
+                    <span className={`status-pill ${apiKey.status.toLowerCase()}`}>{apiKey.status}</span>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="row-button delete"
+                      onClick={() => revokeApiKey(apiKey)}
+                      disabled={apiKey.status === 'Revoked'}
+                    >
+                      {apiKey.status === 'Revoked' ? 'Revoked' : 'Revoke'}
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )
+
+  const usageKeyOptions = useMemo(() => {
+    const keys = demoUsageRecords.map((record) => record.apiKeyName)
+    return ['All', ...new Set(keys)]
+  }, [])
+
+  const usageSummary = useMemo(() => {
+    const total = demoUsageRecords.length
+    const successful = demoUsageRecords.filter((record) => record.result === 'Success').length
+    const failed = demoUsageRecords.filter((record) => record.result === 'Failed').length
+    const averageResponseTime = Math.round(
+      demoUsageRecords.reduce((sum, record) => sum + record.responseTime, 0) / total
+    )
+
+    return {
+      total,
+      successful,
+      failed,
+      averageResponseTime,
+    }
+  }, [])
+
+  const filteredUsageRecords = useMemo(() => {
+    const query = usageSearchTerm.trim().toLowerCase()
+
+    return demoUsageRecords.filter((record) => {
+      const matchesSearch = !query || [record.apiKeyName, record.endpoint, record.method, record.result, record.statusCode]
+        .join(' ')
+        .toLowerCase()
+        .includes(query)
+
+      const matchesDate = (() => {
+        if (usageDateFilter === 'All') return true
+
+        const recordDate = new Date(record.dateTime)
+        const today = new Date()
+        const daysAgo = new Date(today)
+        daysAgo.setDate(today.getDate() - 7)
+
+        if (usageDateFilter === 'Last 7 days') {
+          return recordDate >= daysAgo && recordDate <= today
+        }
+
+        if (usageDateFilter === 'Last 30 days') {
+          const thirtyDaysAgo = new Date(today)
+          thirtyDaysAgo.setDate(today.getDate() - 30)
+          return recordDate >= thirtyDaysAgo && recordDate <= today
+        }
+
+        if (usageDateFilter === 'Today') {
+          return recordDate.toDateString() === today.toDateString()
+        }
+
+        return true
+      })()
+
+      const matchesKey = usageKeyFilter === 'All' || record.apiKeyName === usageKeyFilter
+      const matchesStatus = usageStatusFilter === 'All' || record.result === usageStatusFilter
+
+      return matchesSearch && matchesDate && matchesKey && matchesStatus
+    })
+  }, [usageDateFilter, usageKeyFilter, usageSearchTerm, usageStatusFilter])
+
+  const dailyUsageChart = useMemo(() => {
+    const entries = []
+    const dayMap = new Map()
+
+    demoUsageRecords.forEach((record) => {
+      const day = new Date(record.dateTime).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      })
+
+      dayMap.set(day, (dayMap.get(day) || 0) + 1)
+    })
+
+    for (const [label, total] of [...dayMap.entries()].slice(-7)) {
+      entries.push({ label, total })
+    }
+
+    return entries
+  }, [])
+
+  const endpointUsageChart = useMemo(() => {
+    const endpointMap = new Map()
+
+    demoUsageRecords.forEach((record) => {
+      endpointMap.set(record.endpoint, (endpointMap.get(record.endpoint) || 0) + 1)
+    })
+
+    return [...endpointMap.entries()].map(([endpoint, total]) => ({ endpoint, total }))
+  }, [])
+
+  const requestBreakdownChart = useMemo(() => {
+    const success = demoUsageRecords.filter((record) => record.result === 'Success').length
+    const failed = demoUsageRecords.filter((record) => record.result === 'Failed').length
+    return [
+      { label: 'Successful', value: success, color: '#22c55e' },
+      { label: 'Failed', value: failed, color: '#ef4444' },
+    ]
+  }, [])
+
+  const renderUsageTracking = () => (
+    <section className="usage-page">
+      <div className="page-header usage-header">
+        <div>
+          <p className="eyebrow">Monitoring</p>
+          <h1>Usage Tracking</h1>
+        </div>
+        <span className="demo-badge">DEMO DATA</span>
+      </div>
+
+      <section className="stats-grid usage-summary-grid" aria-label="Usage summary cards">
+        <article className="stat-card">
+          <div className="stat-header">
+            <span className="stat-label">Total API Requests</span>
+          </div>
+          <strong className="stat-value">{usageSummary.total}</strong>
+        </article>
+
+        <article className="stat-card">
+          <div className="stat-header">
+            <span className="stat-label">Successful Requests</span>
+          </div>
+          <strong className="stat-value">{usageSummary.successful}</strong>
+        </article>
+
+        <article className="stat-card">
+          <div className="stat-header">
+            <span className="stat-label">Failed Requests</span>
+          </div>
+          <strong className="stat-value">{usageSummary.failed}</strong>
+        </article>
+
+        <article className="stat-card">
+          <div className="stat-header">
+            <span className="stat-label">Average Response Time</span>
+          </div>
+          <strong className="stat-value">{usageSummary.averageResponseTime} ms</strong>
+        </article>
+      </section>
+
+      <section className="usage-charts-grid">
+        <article className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="panel-kicker">Trend</p>
+              <h2>API requests over time</h2>
+            </div>
+          </div>
+
+          <div className="chart-bars grouped-bars" aria-label="Daily API requests chart">
+            {dailyUsageChart.map((point) => (
+              <div key={point.label} className="chart-bar-group">
+                <div className="chart-bar-stack">
+                  <span className="chart-bar" style={{ height: `${Math.max(18, (point.total / Math.max(...dailyUsageChart.map((item) => item.total), 1)) * 100)}%` }} />
+                </div>
+                <small>{point.label}</small>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="panel-kicker">Outcome</p>
+              <h2>Successful vs failed requests</h2>
+            </div>
+          </div>
+
+          <div className="stacked-chart" aria-label="Request success and failure comparison">
+            {requestBreakdownChart.map((item) => (
+              <div key={item.label} className="stacked-row">
+                <div className="stacked-label-row">
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </div>
+                <div className="stacked-track">
+                  <span
+                    className="stacked-fill"
+                    style={{
+                      width: `${(item.value / Math.max(usageSummary.total, 1)) * 100}%`,
+                      background: item.color,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="panel usage-endpoint-panel">
+          <div className="panel-header">
+            <div>
+              <p className="panel-kicker">Endpoint health</p>
+              <h2>Usage by API endpoint</h2>
+            </div>
+          </div>
+
+          <div className="endpoint-list" aria-label="Usage by API endpoint">
+            {endpointUsageChart.map(({ endpoint, total }) => (
+              <div key={endpoint} className="endpoint-row">
+                <div className="endpoint-header-row">
+                  <span>{endpoint}</span>
+                  <strong>{total}</strong>
+                </div>
+                <div className="endpoint-track">
+                  <span
+                    className="endpoint-fill"
+                    style={{ width: `${(total / Math.max(...endpointUsageChart.map((item) => item.total), 1)) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
+
+      <section className="usage-table-panel panel">
+        <div className="panel-header">
+          <div>
+            <p className="panel-kicker">Activity</p>
+            <h2>Recent API usage</h2>
+          </div>
+        </div>
+
+        <div className="customers-toolbar lead-toolbar usage-filters">
+          <label className="toolbar-search">
+            <span>⌕</span>
+            <input
+              type="search"
+              placeholder="Search endpoint, key, method, or result"
+              value={usageSearchTerm}
+              onChange={(event) => setUsageSearchTerm(event.target.value)}
+            />
+          </label>
+
+          <label className="toolbar-filter">
+            <span>Date</span>
+            <select value={usageDateFilter} onChange={(event) => setUsageDateFilter(event.target.value)}>
+              {['All', 'Today', 'Last 7 days', 'Last 30 days'].map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="toolbar-filter">
+            <span>API key</span>
+            <select value={usageKeyFilter} onChange={(event) => setUsageKeyFilter(event.target.value)}>
+              {usageKeyOptions.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="toolbar-filter">
+            <span>Status</span>
+            <select value={usageStatusFilter} onChange={(event) => setUsageStatusFilter(event.target.value)}>
+              {['All', 'Success', 'Failed'].map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="table-wrap usage-table-wrap">
+          <table className="customers-table usage-table">
+            <thead>
+              <tr>
+                <th>Date & time</th>
+                <th>API key</th>
+                <th>Endpoint</th>
+                <th>Method</th>
+                <th>Status code</th>
+                <th>Response time</th>
+                <th>Request result</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsageRecords.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="empty-state">No usage records match the current search and filters.</td>
+                </tr>
+              ) : (
+                filteredUsageRecords.map((record) => (
+                  <tr key={record.id}>
+                    <td>{new Date(record.dateTime).toLocaleString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}</td>
+                    <td>{record.apiKeyName}</td>
+                    <td>{record.endpoint}</td>
+                    <td>{record.method}</td>
+                    <td>{record.statusCode}</td>
+                    <td>{record.responseTime} ms</td>
+                    <td>
+                      <span className={`status-pill ${record.result === 'Success' ? 'active' : 'revoked'}`}>
+                        {record.result}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  )
+
+  const handleSettingsFieldChange = (field, value) => {
+    setSettingsDraft((previous) => ({
+      ...previous,
+      [field]: value,
+    }))
+    setSettingsMessage('')
+  }
+
+  const handleSaveSettings = () => {
+    setSavedSettings(settingsDraft)
+    setSettingsMessage('Settings saved successfully. Frontend demo settings are stored locally and not connected to a backend.')
+  }
+
+  const handleResetSettings = () => {
+    setSettingsDraft(savedSettings)
+    setSettingsMessage('Changes discarded. The saved demo settings remain in place.')
+  }
+
+  const renderSettings = () => (
+    <section className="settings-page">
+      <div className="page-header settings-header">
+        <div>
+          <p className="eyebrow">Workspace</p>
+          <h1>Settings</h1>
+        </div>
+        <div className="settings-demo-badge">Frontend demo</div>
+      </div>
+
+      <div className="settings-banner">
+        These settings are demo-only frontend preferences and are not connected to Google Sheets or Google Apps Script yet.
+      </div>
+
+      {settingsMessage && <div className="settings-success-message">{settingsMessage}</div>}
+
+      <div className="settings-grid">
+        <section className="settings-section panel">
+          <div className="section-header-row">
+            <div>
+              <p className="panel-kicker">Business</p>
+              <h2>Company Profile</h2>
+            </div>
+          </div>
+
+          <div className="form-grid settings-form-grid">
+            <label className="field">
+              <span>Company name</span>
+              <input
+                type="text"
+                value={settingsDraft.companyName}
+                onChange={(event) => handleSettingsFieldChange('companyName', event.target.value)}
+              />
+            </label>
+
+            <label className="field">
+              <span>Business email</span>
+              <input
+                type="email"
+                value={settingsDraft.businessEmail}
+                onChange={(event) => handleSettingsFieldChange('businessEmail', event.target.value)}
+              />
+            </label>
+
+            <label className="field">
+              <span>Contact number</span>
+              <input
+                type="tel"
+                value={settingsDraft.contactNumber}
+                onChange={(event) => handleSettingsFieldChange('contactNumber', event.target.value)}
+              />
+            </label>
+
+            <label className="field">
+              <span>Website</span>
+              <input
+                type="url"
+                value={settingsDraft.website}
+                onChange={(event) => handleSettingsFieldChange('website', event.target.value)}
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="settings-section panel">
+          <div className="section-header-row">
+            <div>
+              <p className="panel-kicker">Profile</p>
+              <h2>User Profile</h2>
+            </div>
+          </div>
+
+          <div className="form-grid settings-form-grid">
+            <label className="field">
+              <span>User name</span>
+              <input
+                type="text"
+                value={settingsDraft.userName}
+                onChange={(event) => handleSettingsFieldChange('userName', event.target.value)}
+              />
+            </label>
+
+            <label className="field">
+              <span>Email address</span>
+              <input
+                type="email"
+                value={settingsDraft.userEmail}
+                onChange={(event) => handleSettingsFieldChange('userEmail', event.target.value)}
+              />
+            </label>
+
+            <label className="field full-span">
+              <span>Role</span>
+              <input
+                type="text"
+                value={settingsDraft.userRole}
+                onChange={(event) => handleSettingsFieldChange('userRole', event.target.value)}
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="settings-section panel">
+          <div className="section-header-row">
+            <div>
+              <p className="panel-kicker">Preferences</p>
+              <h2>General Preferences</h2>
+            </div>
+          </div>
+
+          <div className="form-grid settings-form-grid">
+            <label className="field">
+              <span>Timezone</span>
+              <select value={settingsDraft.timezone} onChange={(event) => handleSettingsFieldChange('timezone', event.target.value)}>
+                <option value="UTC-08:00 (Pacific Time)">UTC-08:00 (Pacific Time)</option>
+                <option value="UTC-05:00 (Eastern Time)">UTC-05:00 (Eastern Time)</option>
+                <option value="UTC+00:00 (GMT)">UTC+00:00 (GMT)</option>
+                <option value="UTC+01:00 (Central European Time)">UTC+01:00 (Central European Time)</option>
+              </select>
+            </label>
+
+            <label className="field">
+              <span>Date format</span>
+              <select value={settingsDraft.dateFormat} onChange={(event) => handleSettingsFieldChange('dateFormat', event.target.value)}>
+                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+              </select>
+            </label>
+
+            <label className="field full-span">
+              <span>Time format</span>
+              <select value={settingsDraft.timeFormat} onChange={(event) => handleSettingsFieldChange('timeFormat', event.target.value)}>
+                <option value="12-hour">12-hour</option>
+                <option value="24-hour">24-hour</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section className="settings-section panel">
+          <div className="section-header-row">
+            <div>
+              <p className="panel-kicker">API</p>
+              <h2>API Configuration</h2>
+            </div>
+          </div>
+
+          <div className="form-grid settings-form-grid">
+            <label className="field full-span">
+              <span>API base URL</span>
+              <input
+                type="url"
+                value={settingsDraft.apiBaseUrl}
+                onChange={(event) => handleSettingsFieldChange('apiBaseUrl', event.target.value)}
+              />
+            </label>
+
+            <label className="field">
+              <span>Environment</span>
+              <select value={settingsDraft.environment} onChange={(event) => handleSettingsFieldChange('environment', event.target.value)}>
+                <option value="Development">Development</option>
+                <option value="Production">Production</option>
+              </select>
+            </label>
+
+            <label className="field">
+              <span>Configuration status</span>
+              <select value={settingsDraft.configurationStatus} onChange={(event) => handleSettingsFieldChange('configurationStatus', event.target.value)}>
+                <option value="Demo mode - not connected">Demo mode - not connected</option>
+                <option value="Ready for API integration">Ready for API integration</option>
+                <option value="Connected">Connected</option>
+              </select>
+            </label>
+          </div>
+        </section>
+      </div>
+
+      <div className="settings-actions">
+        <button type="button" className="ghost-button" onClick={handleResetSettings}>Reset Changes</button>
+        <button type="button" className="primary-button" onClick={handleSaveSettings}>Save Changes</button>
+      </div>
+    </section>
+  )
+
   const renderActivities = () => (
     <section className="activities-page">
       <div className="page-header">
@@ -2560,8 +3537,116 @@ function App() {
             ? renderLeads()
             : activeTab === 'Activities'
               ? renderActivities()
-              : renderDashboard()}
+              : activeTab === 'API Management'
+                ? renderApiManagement()
+                : activeTab === 'Usage Tracking' || activeTab === 'Usage'
+                  ? renderUsageTracking()
+                  : activeTab === 'Settings'
+                    ? renderSettings()
+                    : renderDashboard()}
       </main>
+
+      {isApiKeyModalOpen && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className="modal-card api-key-modal">
+            <div className="modal-header">
+              <div>
+                <p className="panel-kicker">Security</p>
+                <h3>{newlyCreatedApiKey ? 'API key created' : 'Create API key'}</h3>
+              </div>
+              <button type="button" className="close-button" onClick={closeApiKeyModal} aria-label="Close API key form">
+                ×
+              </button>
+            </div>
+
+            {newlyCreatedApiKey ? (
+              <div className="api-key-success">
+                <div className="generated-key-box">
+                  <span className="panel-kicker">API key</span>
+                  <code>{newlyCreatedApiKey.completeKey}</code>
+                </div>
+
+                <div className="warning-box">
+                  Save this API key securely. It will not be visible again once this dialog is closed.
+                </div>
+
+                <div className="modal-actions">
+                  <button type="button" className="ghost-button" onClick={closeApiKeyModal}>Close</button>
+                  <button type="button" className="primary-button" onClick={copyGeneratedApiKey}>
+                    {newlyCreatedApiKey.copied ? 'Copied' : 'Copy API Key'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="form-grid api-key-form-grid">
+                  <label className="field">
+                    <span>API key name</span>
+                    <input
+                      type="text"
+                      value={apiKeyForm.name}
+                      onChange={(event) => handleApiKeyFieldChange('name', event.target.value)}
+                    />
+                    {apiKeyFormErrors.name && <small>{apiKeyFormErrors.name}</small>}
+                  </label>
+
+                  <label className="field">
+                    <span>Environment</span>
+                    <select value={apiKeyForm.environment} onChange={(event) => handleApiKeyFieldChange('environment', event.target.value)}>
+                      <option value="Test">Test</option>
+                    </select>
+                    {apiKeyFormErrors.environment && <small>{apiKeyFormErrors.environment}</small>}
+                  </label>
+
+                  <div className="field full-span">
+                    <span>Permissions</span>
+                    <div className="api-key-permissions">
+                      {['Customers', 'Leads', 'Activities'].map((resource) => (
+                        <div key={resource} className="permission-group">
+                          <strong>{resource}</strong>
+                          <div className="permission-options">
+                            {['Read', 'Write'].map((access) => {
+                              const permissionLabel = `${resource}: ${access}`
+                              const checked = apiKeyForm.permissions.includes(permissionLabel)
+
+                              return (
+                                <label key={permissionLabel} className="checkbox-option">
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() => toggleApiKeyPermission(permissionLabel)}
+                                  />
+                                  <span>{access}</span>
+                                </label>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {apiKeyFormErrors.permissions && <small>{apiKeyFormErrors.permissions}</small>}
+                  </div>
+
+                  <label className="field full-span">
+                    <span>Expiry</span>
+                    <select value={apiKeyForm.expiry} onChange={(event) => handleApiKeyFieldChange('expiry', event.target.value)}>
+                      {apiKeyExpiryOptions.map((option) => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                    </select>
+                    {apiKeyFormErrors.expiry && <small>{apiKeyFormErrors.expiry}</small>}
+                  </label>
+                </div>
+
+                <div className="modal-actions">
+                  <button type="button" className="ghost-button" onClick={closeApiKeyModal}>Cancel</button>
+                  <button type="button" className="primary-button" onClick={handleCreateApiKey}>Create API Key</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {isFormOpen && (
         <CustomerFormModal
